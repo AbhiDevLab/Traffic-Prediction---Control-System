@@ -2,6 +2,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { TrafficRecord, Prediction } from "@/lib/sampleData";
 
+const REFETCH_INTERVAL = 30_000; // 30 seconds
+
 export function useTrafficData(junctionId?: string) {
   return useQuery({
     queryKey: ['traffic_data', junctionId],
@@ -19,6 +21,7 @@ export function useTrafficData(junctionId?: string) {
       if (error) throw error;
       return (data ?? []) as TrafficRecord[];
     },
+    refetchInterval: REFETCH_INTERVAL,
   });
 }
 
@@ -34,6 +37,7 @@ export function usePredictions() {
       if (error) throw error;
       return (data ?? []) as Prediction[];
     },
+    refetchInterval: REFETCH_INTERVAL,
   });
 }
 
@@ -66,5 +70,6 @@ export function useTrafficStats() {
 
       return { totalVehicles, activeJunctions: junctionIds.length, avgCongestionScore, congestionCounts, totalRecords: records.length };
     },
+    refetchInterval: REFETCH_INTERVAL,
   });
 }
