@@ -5,8 +5,8 @@ import { CongestionBadge } from "@/components/CongestionBadge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Car, Radio, TrendingUp, BrainCircuit, Zap } from "lucide-react";
-import { useState, useMemo } from "react";
+import { Car, Radio, TrendingUp, BrainCircuit, Zap, RefreshCw } from "lucide-react";
+import { useState, useMemo, useEffect } from "react";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from "recharts";
@@ -16,9 +16,15 @@ const COLORS = { J1: 'hsl(210,100%,56%)', J2: 'hsl(142,71%,45%)', J3: 'hsl(38,92
 
 export default function Dashboard() {
   const [selectedJunction, setSelectedJunction] = useState('all');
-  const { data: trafficData = [], isLoading } = useTrafficData();
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+  const { data: trafficData = [], isLoading, isFetching } = useTrafficData();
   const { data: stats } = useTrafficStats();
   const { data: predictions = [] } = usePredictions();
+
+  // Update last-updated timestamp whenever data is fetched
+  useEffect(() => {
+    if (!isFetching) setLastUpdated(new Date());
+  }, [isFetching]);
 
   // Build last-24h trend by hour and junction
   const trendData = useMemo(() => {
@@ -65,16 +71,28 @@ export default function Dashboard() {
           <h1 className="text-xl font-bold text-foreground">Traffic Dashboard</h1>
           <p className="text-sm text-muted-foreground">Real-time monitoring across all junctions</p>
         </div>
-        <Select value={selectedJunction} onValueChange={setSelectedJunction}>
-          <SelectTrigger className="w-36 bg-card border-border">
-            <SelectValue placeholder="Junction" />
-          </SelectTrigger>
-          <SelectContent>
-            {JUNCTIONS.map(j => (
-              <SelectItem key={j} value={j}>{j === 'all' ? 'All Junctions' : `Junction ${j}`}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-3 flex-wrap">
+          {/* Last updated + syncing indicator */}
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/20 border border-border px-2.5 py-1.5 rounded-md">
+            <RefreshCw className={`w-3 h-3 ${isFetching ? 'animate-spin text-primary' : 'text-muted-foreground'}`} />
+            <span>
+              {isFetching ? 'Syncing…' : `Updated ${lastUpdated.toLocaleTimeString()}`}
+            </span>
+            {!isFetching && (
+              <span className="text-muted-foreground/60">· auto-refresh 30s</span>
+            )}
+          </div>
+          <Select value={selectedJunction} onValueChange={setSelectedJunction}>
+            <SelectTrigger className="w-36 bg-card border-border">
+              <SelectValue placeholder="Junction" />
+            </SelectTrigger>
+            <SelectContent>
+              {JUNCTIONS.map(j => (
+                <SelectItem key={j} value={j}>{j === 'all' ? 'All Junctions' : `Junction ${j}`}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {/* KPI Cards */}
