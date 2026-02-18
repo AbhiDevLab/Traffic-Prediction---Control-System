@@ -28,18 +28,25 @@ export default function Dashboard() {
 
   // Build last-24h trend by hour and junction
   const trendData = useMemo(() => {
-    const now = new Date();
+    if (trafficData.length === 0) return [];
+    // Anchor to the latest timestamp in the dataset (not now) so seeded/historic data always shows
+    const latestMs = Math.max(...trafficData.map(r => new Date(r.timestamp).getTime()));
+    const anchor = new Date(latestMs);
+    // Round anchor up to the next full hour so the window ends cleanly
+    anchor.setMinutes(0, 0, 0);
+    anchor.setHours(anchor.getHours() + 1);
+
     const hours: { hour: string; J1?: number; J2?: number; J3?: number; J4?: number }[] = [];
     for (let i = 23; i >= 0; i--) {
-      const d = new Date(now.getTime() - i * 3600000);
-      const label = `${d.getHours()}:00`;
+      const slotStart = new Date(anchor.getTime() - i * 3600000);
+      const slotEnd = new Date(slotStart.getTime() + 3600000);
+      const label = `${slotStart.getHours()}:00`;
       const entry: typeof hours[0] = { hour: label };
       ['J1','J2','J3','J4'].forEach(j => {
-        const rec = trafficData.find(r =>
-          r.junction_id === j &&
-          new Date(r.timestamp).getHours() === d.getHours() &&
-          Math.abs(new Date(r.timestamp).getTime() - d.getTime()) < 3600000 * 24
-        );
+        const rec = trafficData.find(r => {
+          const t = new Date(r.timestamp).getTime();
+          return r.junction_id === j && t >= slotStart.getTime() && t < slotEnd.getTime();
+        });
         if (rec) (entry as Record<string, unknown>)[j] = rec.vehicle_count;
       });
       hours.push(entry);
