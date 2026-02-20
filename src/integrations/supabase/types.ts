@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      junctions: {
+        Row: {
+          city: string
+          created_at: string
+          id: string
+          latitude: number
+          location_name: string
+          longitude: number
+        }
+        Insert: {
+          city: string
+          created_at?: string
+          id: string
+          latitude: number
+          location_name: string
+          longitude: number
+        }
+        Update: {
+          city?: string
+          created_at?: string
+          id?: string
+          latitude?: number
+          location_name?: string
+          longitude?: number
+        }
+        Relationships: []
+      }
       predictions: {
         Row: {
           accuracy: number | null
