@@ -4,6 +4,29 @@ import { TrafficRecord, Prediction } from "@/lib/sampleData";
 
 const REFETCH_INTERVAL = 30_000; // 30 seconds
 
+export interface Junction {
+  id: string;
+  city: string;
+  location_name: string;
+  latitude: number;
+  longitude: number;
+}
+
+export function useJunctions() {
+  return useQuery({
+    queryKey: ['junctions'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('junctions')
+        .select('*')
+        .order('id');
+      if (error) throw error;
+      return (data ?? []) as Junction[];
+    },
+    staleTime: Infinity, // junction metadata never changes
+  });
+}
+
 export function useTrafficData(junctionId?: string) {
   return useQuery({
     queryKey: ['traffic_data', junctionId],
