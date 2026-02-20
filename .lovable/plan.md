@@ -1,81 +1,132 @@
 
-## Intelligent Traffic Prediction & Control System
+## TomTom Real Traffic Integration — Lucknow, Sonipat, Delhi, Bangalore
 
-### App Overview
-A professional, dark-themed traffic management dashboard that demonstrates time-series forecasting, smart signal control simulation, and real-time analytics — all in one cohesive full-stack React application.
-
----
-
-### 🎨 Design & Layout
-- **Dark command-center theme** — deep navy/dark backgrounds with blue, green, and amber accent colors to indicate congestion levels
-- **Sidebar navigation** with sections: Dashboard, Data Upload, Analysis, Predictions, Signal Control
-- **Responsive grid layout** — adapts from wide desktop monitors to tablets
-- **Status bar** at the top showing system health, active junctions, and last update time
+### What This Does
+Replaces the synthetic/seeded dummy data with live traffic congestion data fetched from TomTom's Traffic Flow API for 4 real Indian city junctions. The dashboard, analysis, and predictions pages will all reflect actual road conditions.
 
 ---
 
-### 📊 Page 1: Main Dashboard
-- **4 KPI cards** at the top: Total Vehicles Monitored, Active Junctions, Average Congestion Level, Predictions Made Today
-- **Live traffic trend line chart** — shows vehicle count over the last 24 hours across junctions (animated)
-- **Congestion heatmap grid** — color-coded cells (green/yellow/red) per junction per hour
-- **Peak hour indicator** — highlights the busiest hour with a badge
-- **Quick junction selector** — dropdown to filter data by junction ID
+### Junction Locations (Real Coordinates)
+
+| Junction ID | City      | Location                              | Coordinates              |
+|-------------|-----------|---------------------------------------|--------------------------|
+| J1          | Lucknow   | Hazratganj Chauraha (busy CBD cross)  | 26.8476° N, 80.9462° E  |
+| J2          | Sonipat   | Sabzi Mandi Chowk (main city cross)   | 28.9931° N, 77.0151° E  |
+| J3          | Delhi     | Connaught Place Roundabout            | 28.6315° N, 77.2167° E  |
+| J4          | Bangalore | MG Road / Trinity Circle              | 12.9716° N, 77.6076° E  |
 
 ---
 
-### 📁 Page 2: Data Upload & Processing
-- **CSV drag-and-drop upload area** with file validation
-- **Data preview table** — shows first 20 rows after upload with columns: timestamp, junction ID, vehicle count, average speed, congestion level
-- **Processing pipeline visualization** — step-by-step status indicators (Upload → Parse → Feature Extract → Store → Ready)
-- **Extracted features display** — shows computed hour, day-of-week, vehicle count statistics
-- **Sample dataset** — pre-loaded seed data so the app works immediately without uploading
+### How TomTom Congestion Works
+
+TomTom's Traffic Flow API returns for each coordinate:
+- `currentSpeed` — actual live speed (km/h)
+- `freeFlowSpeed` — normal speed with no traffic (km/h)
+- A ratio: `currentSpeed / freeFlowSpeed`
+
+Congestion is classified as:
+```
+ratio < 0.5  → High   (less than half the normal speed)
+ratio < 0.75 → Medium (75% of normal speed)
+ratio >= 0.75 → Low   (near free-flow conditions)
+```
+
+Vehicle count is estimated from the speed ratio (inverse relationship — slower = more vehicles).
 
 ---
 
-### 📈 Page 3: Traffic Analysis
-- **Hourly traffic trend graph** — line chart showing traffic patterns by hour of day (averaged across all days)
-- **Peak hour detection panel** — bar chart highlighting top 5 busiest hours
-- **Junction comparison chart** — grouped bar chart comparing vehicle counts across all junctions (Junction 1–4)
-- **Day-of-week breakdown** — shows which days have highest/lowest traffic
-- **Statistics summary table** — min, max, mean, median vehicle counts per junction
+### Architecture
+
+```text
+[TomTom Traffic Flow API]
+        |
+        | (HTTPS GET — once per 5 minutes)
+        v
+[Backend Edge Function: fetch-tomtom-traffic]
+        |
+        | Stores computed records
+        v
+[traffic_data table in database]
+        |
+        | (existing hooks, 30s polling)
+        v
+[Dashboard / Analysis / Predictions UI]
+```
 
 ---
 
-### 🤖 Page 4: LSTM Prediction Module
-- **Prediction control panel** — select junction, set window size (15 or 30 minutes), trigger prediction
-- **LSTM simulation explanation** — visual diagram showing sliding window → LSTM layers → output (educational)
-- **Prediction output chart** — dual-line chart showing historical (solid) vs predicted (dashed) vehicle counts
-- **Congestion classification badge** — color-coded Low / Medium / High result with confidence percentage
-- **Prediction history table** — last 10 predictions with timestamp, junction, predicted count, actual congestion level
-- **Model metrics display** — simulated MAE, RMSE, accuracy scores
+### Technical Implementation Plan
+
+#### Step 1 — Securely Store the API Key
+- Store the TomTom API key as a backend secret named `TOMTOM_API_KEY`
+- Never exposed in frontend code
+
+#### Step 2 — Create Backend Edge Function: `fetch-tomtom-traffic`
+- A backend function that accepts a POST or GET request
+- Calls TomTom Traffic Flow API for all 4 junction coordinates simultaneously
+- Parses `currentSpeed` and `freeFlowSpeed` from the response
+- Calculates congestion level (Low/Medium/High) from the speed ratio
+- Estimates vehicle count from the ratio (inverse formula)
+- Inserts a new row into `traffic_data` for each junction with:
+  - `junction_id`: J1–J4
+  - `timestamp`: current UTC time
+  - `vehicle_count`: estimated from speed ratio
+  - `average_speed`: `currentSpeed` directly from TomTom
+  - `congestion_level`: computed from ratio
+
+#### Step 3 — Add a `junctions` metadata table (migration)
+- Stores junction name, city, latitude, longitude for each J1–J4
+- Used by the map component and tooltip labels
+- No RLS needed (public read-only reference data)
+
+#### Step 4 — Add "Fetch Live Traffic" Button to Dashboard
+- A button labeled "Fetch Live Traffic" in the Dashboard header
+- Calls the backend edge function on demand
+- Shows a loading spinner while fetching
+- Shows a success toast: "Live traffic fetched for Lucknow, Sonipat, Delhi, Bangalore"
+- Auto-schedules fetch every 5 minutes via the dashboard
+
+#### Step 5 — Rename Junctions Throughout the UI
+- Update labels from "J1/J2/J3/J4" to "Lucknow / Sonipat / Delhi / Bangalore" in:
+  - Dashboard KPI cards
+  - Junction Status cards (bottom section)
+  - Traffic Trend chart legend
+  - Analysis page junction comparison chart
+  - Signal Control page
+
+#### Step 6 — Add a Live Traffic Map Panel
+- Add an interactive map card to the Dashboard using **Leaflet.js** (free, no extra key needed)
+- Shows 4 city pins color-coded by live congestion:
+  - Red pin = High
+  - Yellow pin = Medium
+  - Green pin = Low
+- Clicking a pin shows a popup: city name, current speed, congestion level
 
 ---
 
-### 🚦 Page 5: Smart Signal Timing Simulation
-- **Junction signal visualizer** — animated traffic light component showing current signal state (red/yellow/green)
-- **Fixed vs Smart timing comparison** — side-by-side bar chart
-  - Fixed: always 30s green, 30s red
-  - Smart: dynamically adjusted based on congestion (High → 60s green, Low → 15s green)
-- **Signal timing calculator** — input congestion level and see computed green/red timing in real-time
-- **Simulation runner** — press "Run Simulation" to animate a 1-minute cycle comparing both approaches
-- **Efficiency gain metric** — shows percentage improvement in throughput with smart timing
+### What Stays the Same
+- All existing charts and hooks continue working unchanged
+- The `traffic_data` table schema is unchanged (no migration needed for the table itself)
+- Seeded/historical data still visible in Analysis page
 
 ---
 
-### 🗄️ Data & Backend
-- **Supabase integration** with two tables:
-  - `traffic_data`: junction_id, timestamp, vehicle_count, average_speed, congestion_level
-  - `predictions`: junction_id, predicted_time, predicted_vehicle_count, predicted_congestion_level
-- **Pre-seeded sample dataset** with realistic traffic data across 4 junctions over 7 days
-- **CSV import** stores parsed data directly to Supabase
-- **All charts** pull from live Supabase data
+### Files to Create / Modify
+
+| File | Action |
+|------|--------|
+| `supabase/functions/fetch-tomtom-traffic/index.ts` | Create — edge function |
+| `supabase/migrations/xxx_junctions_table.sql` | Create — junctions metadata table |
+| `src/pages/Dashboard.tsx` | Update — add fetch button, map panel, rename junctions |
+| `src/components/TrafficMap.tsx` | Create — Leaflet map with junction pins |
+| `src/hooks/useTrafficData.ts` | Update — add `useJunctions` hook for metadata |
 
 ---
 
-### 🔧 Technical Structure
-- Modular page-per-feature architecture with shared components
-- Reusable chart components (TrafficLineChart, CongestionHeatmap, JunctionCompare)
-- Custom hooks for data fetching (useTrafficData, usePredictions, useSignalSimulation)
-- Environment-based configuration
-- Type-safe TypeScript throughout
-- Toast notifications for upload success, prediction completion, errors
+### Prerequisites Before Implementation
+You need to share the TomTom API key — once you do, I will:
+1. Store it as a secure backend secret
+2. Build and deploy the edge function
+3. Update the dashboard UI
+
+The free TomTom tier gives **2,500 requests/day** — at one fetch per 5 minutes that's 288 requests/day (well within limits).
