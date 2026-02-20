@@ -1,1 +1,4 @@
 project_id = "mmaiplnfwbjlorsnfnmo"
+
+[functions.fetch-tomtom-traffic]
+verify_jwt = false
