@@ -1,112 +1,98 @@
-# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
-
-node_modules
-dist
-dist-ssr
-*.local
-
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
-.DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
-.env
-
-# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
-
-# Dependency directories
+# ================================
+# Dependencies
+# ================================
 node_modules/
-.pnp/
-.pnp.js
 
-# Build outputs
+# ================================
+# Environment & Secrets
+# ================================
+.env
+.env.*
+!.env.example
+
+# Supabase (keep folder, ignore secrets)
+supabase/.env
+supabase/.temp/
+supabase/.branches/
+
+# ================================
+# Build Outputs
+# ================================
 dist/
 dist-ssr/
 build/
 out/
 coverage/
-.cache/
 .vite/
-parcel-cache/
+.cache/
 .next/
-*.local
+parcel-cache/
 
-# Runtime files
+# ================================
+# Logs
+# ================================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ================================
+# Runtime / Temp
+# ================================
+tmp/
+temp/
+*.tmp
 *.pid
 *.seed
 *.pid.lock
 
-# Environment & secrets (do NOT commit)
-.env.*
-.env.local
-.env.*.local
-.env.production
-.env.test
-.secrets/
-*.key
-*.pem
-*.crt
-*.p12
-*.jks
-credentials
-*.enc
-*.secret
-
-# Supabase local config (often contains secrets)
-supabase/config.toml
-supabase/.env
-
-# Editor & OS
+# ================================
+# Editor / IDE
+# ================================
 .vscode/*
 !.vscode/extensions.json
 .idea/
-.DS_Store
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
 
-# Temp / cache
-tmp/
-temp/
-*.tmp
+# ================================
+# OS Files
+# ================================
+.DS_Store
+Thumbs.db
 
-# Git credentials
-.git-credentials
+# ================================
+# TypeScript
+# ================================
+*.tsbuildinfo
 
-# Local environment & internal folders
-.envrc
-.semaphore/
-.vagrant/
-.terraform/
-.terraform.lock.hcl
-.venv/
-__pycache__/
-*.pyc
-
-# Coverage and test artifacts
+# ================================
+# Testing
+# ================================
 .nyc_output/
 test-results/
 
+# ================================
+# Security / Credentials
+# ================================
+*.key
+*.pem
+*.crt
+*.p12
+*.jks
+*.secret
+*.enc
+.secrets/
+credentials
+
+# ================================
 # Misc
-Thumbs.db
+# ================================
+.lovable/
+bun.lockb
+.git-credentials
