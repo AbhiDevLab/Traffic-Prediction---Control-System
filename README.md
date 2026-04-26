@@ -1,61 +1,88 @@
-# Welcome to your Lovable project
+# Traffic Prediction & Control System
 
-## Project info
+This repository contains the frontend for a traffic prediction and signal-control demo built with Vite, TypeScript, React, Tailwind CSS and shadcn-ui. It includes pages for data upload, analysis, predictions, and a signal control UI that integrates with Supabase for backend data and Supabase Edge Functions.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+Quick links
+- Project: Traffic Prediction & Control System
+- Folder: `src/` (app source)
+- Supabase config: `supabase/` (local config should NOT be committed)
 
-## How can I edit this code?
+Features
+- Visualize traffic congestion and KPIs
+- Upload traffic data and run analysis
+- Generate short-term traffic predictions
+- Basic signal control UI for simulation
 
-There are several ways of editing your application.
+Prerequisites
+- Node.js 18+ and npm or pnpm
+- (Optional) Supabase CLI/Account if you want to run backend services locally
 
-**Use Lovable**
+Local setup
+1. Clone the repo:
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
+```bash
 git clone <YOUR_GIT_URL>
+cd traffic-prediction-&-control-system
+```
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+2. Install dependencies:
 
-# Step 3: Install the necessary dependencies.
-npm i
+```bash
+npm install
+```
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+3. Copy example env files and configure secrets (do not commit these):
+
+```bash
+cp .env.example .env.local
+# Edit .env.local and set SUPABASE_URL, SUPABASE_ANON_KEY, etc.
+```
+
+4. Start the dev server:
+
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+Available scripts (from `package.json`)
+- `npm run dev` — start dev server
+- `npm run build` — build production bundle
+- `npm run preview` — preview production build locally
+- `npm run test` — run tests (if configured)
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+Environment & secrets
+- Keep secrets out of the repo. Add values to `.env.local` or use environment variables in CI.
+- The `supabase/config.toml` file and `supabase/.env` may contain secrets and are ignored by `.gitignore`.
 
-**Use GitHub Codespaces**
+Supabase notes
+- This project includes a `supabase/` folder with local function(s) and a `config.toml` file. Do not commit production keys.
+- To run Supabase locally, install the Supabase CLI and follow Supabase docs.
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+Building & deploying
+- Build: `npm run build`
+- Deploy static build to any static host (Netlify, Vercel) / platform-specific instructions.
 
-## What technologies are used for this project?
+Contributing
+- Fork and open a PR. Keep secrets out of commits.
+- Add small, focused commits and include context in PR descriptions.
 
-This project is built with:
+Troubleshooting
+- If the app fails to start, confirm Node version and that env variables (`SUPABASE_URL`, `SUPABASE_ANON_KEY`) are set.
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+Files of interest
+- `src/` — React app source
+- `src/components/` — UI components
+- `supabase/` — local Supabase functions and config (ignored by git)
+- `lib/` — helper utilities and sample data
+
+Contact / more info
+- See project README in the dashboard or open an issue in this repo for questions.
+
+
+---
+
+If you'd like, I can:
+- add a `CONTRIBUTING.md` and `LICENSE`
+- expand the README with command outputs and screenshots
+- or remove/add specific ignores for files you want tracked
+
