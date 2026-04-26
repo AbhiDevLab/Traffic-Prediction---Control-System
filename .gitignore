@@ -22,3 +22,91 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+.env
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Dependency directories
+node_modules/
+.pnp/
+.pnp.js
+
+# Build outputs
+dist/
+dist-ssr/
+build/
+out/
+coverage/
+.cache/
+.vite/
+parcel-cache/
+.next/
+*.local
+
+# Runtime files
+*.pid
+*.seed
+*.pid.lock
+
+# Environment & secrets (do NOT commit)
+.env.*
+.env.local
+.env.*.local
+.env.production
+.env.test
+.secrets/
+*.key
+*.pem
+*.crt
+*.p12
+*.jks
+credentials
+*.enc
+*.secret
+
+# Supabase local config (often contains secrets)
+supabase/config.toml
+supabase/.env
+
+# Editor & OS
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Temp / cache
+tmp/
+temp/
+*.tmp
+
+# Git credentials
+.git-credentials
+
+# Local environment & internal folders
+.envrc
+.semaphore/
+.vagrant/
+.terraform/
+.terraform.lock.hcl
+.venv/
+__pycache__/
+*.pyc
+
+# Coverage and test artifacts
+.nyc_output/
+test-results/
+
+# Misc
+Thumbs.db
