@@ -1,10 +1,12 @@
 import { useTrafficData } from "@/hooks/useTrafficData";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 const JUNCTIONS = ['J1','J2','J3','J4'];
+const JUNCTION_LABELS: Record<string,string> = { J1:'Lucknow', J2:'Sonipat', J3:'Delhi', J4:'Bangalore' };
 const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const COLORS = { J1: 'hsl(210,100%,56%)', J2: 'hsl(142,71%,45%)', J3: 'hsl(38,92%,50%)', J4: 'hsl(0,84%,60%)' };
 
@@ -15,7 +17,12 @@ function median(arr: number[]) {
 }
 
 export default function Analysis() {
-  const { data: records = [], isLoading } = useTrafficData();
+  const [selectedJunction, setSelectedJunction] = useState<string>('all');
+  const { data: allRecords = [], isLoading } = useTrafficData();
+  const records = useMemo(
+    () => selectedJunction === 'all' ? allRecords : allRecords.filter(r => r.junction_id === selectedJunction),
+    [allRecords, selectedJunction]
+  );
 
   // Hourly trend (average by hour across all junctions)
   const hourlyData = useMemo(() => {
@@ -92,19 +99,34 @@ export default function Analysis() {
     <div className="p-6 flex items-center justify-center h-64 text-muted-foreground">Loading analysis…</div>
   );
 
-  if (records.length === 0) return (
-    <div className="p-6 flex flex-col items-center justify-center h-64 text-center">
-      <p className="text-muted-foreground text-sm">No data available. Please upload data on the Data Upload page first.</p>
-    </div>
-  );
-
   return (
     <div className="p-6 space-y-6">
-      <div>
-        <h1 className="text-xl font-bold text-foreground">Traffic Analysis</h1>
-        <p className="text-sm text-muted-foreground">Statistical breakdown of traffic patterns across junctions</p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-bold text-foreground">Traffic Analysis</h1>
+          <p className="text-sm text-muted-foreground">
+            Statistical breakdown of traffic patterns
+            {selectedJunction !== 'all' && ` — ${JUNCTION_LABELS[selectedJunction]}`}
+          </p>
+        </div>
+        <Select value={selectedJunction} onValueChange={setSelectedJunction}>
+          <SelectTrigger className="w-[200px] bg-card border-border">
+            <SelectValue placeholder="Select location" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Cities</SelectItem>
+            {JUNCTIONS.map(j => (
+              <SelectItem key={j} value={j}>{JUNCTION_LABELS[j]} ({j})</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
+      {records.length === 0 ? (
+        <div className="flex flex-col items-center justify-center h-64 text-center">
+          <p className="text-muted-foreground text-sm">No data available for this selection.</p>
+        </div>
+      ) : (
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Hourly Trend */}
         <Card className="bg-card border-border">
@@ -210,6 +232,7 @@ export default function Analysis() {
           </CardContent>
         </Card>
       </div>
+      )}
     </div>
   );
 }
