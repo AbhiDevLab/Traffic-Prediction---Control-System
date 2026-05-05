@@ -143,6 +143,30 @@ export default function Dashboard() {
   const avgScore = stats?.avgCongestionScore ?? 0;
   const congestionLabel = avgScore >= 2.5 ? 'High' : avgScore >= 1.5 ? 'Medium' : 'Low';
 
+  // City-specific KPI values (when a single junction is selected)
+  const selectedStats = useMemo(() => {
+    if (selectedJunction === 'all') return null;
+    const records = trafficData
+      .filter(r => r.junction_id === selectedJunction)
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    const latest = records[0];
+    if (!latest) return { vehicles: 0, congestion: 'No data', speed: 0, hasData: false };
+    return {
+      vehicles: latest.vehicle_count,
+      congestion: latest.congestion_level,
+      speed: Number(latest.average_speed) || 0,
+      hasData: true,
+    };
+  }, [selectedJunction, trafficData]);
+
+  const overallAvgSpeed = useMemo(() => {
+    if (trafficData.length === 0) return 0;
+    const recent = trafficData.slice(-50);
+    return recent.reduce((s, r) => s + (Number(r.average_speed) || 0), 0) / recent.length;
+  }, [trafficData]);
+
+  const cityLabel = selectedJunction === 'all' ? 'all cities' : JUNCTION_LABELS[selectedJunction];
+
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
@@ -191,25 +215,41 @@ export default function Dashboard() {
       {/* KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <KpiCard
-          title="Total Vehicles"
-          value={isLoading ? '…' : (stats?.totalVehicles ?? 0).toLocaleString()}
-          subtitle="Monitored this week"
+          title={selectedStats ? 'Latest Vehicles' : 'Total Vehicles'}
+          value={
+            isLoading ? '…' :
+            selectedStats ? selectedStats.vehicles.toLocaleString()
+                          : (stats?.totalVehicles ?? 0).toLocaleString()
+          }
+          subtitle={selectedStats ? `${cityLabel} — most recent reading` : 'Monitored this week'}
           icon={Car}
           color="blue"
         />
         <KpiCard
-          title="Active Junctions"
-          value={isLoading ? '…' : stats?.activeJunctions ?? 0}
-          subtitle="Reporting live"
+          title="Avg Speed"
+          value={
+            isLoading ? '…' :
+            selectedStats
+              ? (selectedStats.hasData ? `${selectedStats.speed.toFixed(0)} km/h` : '—')
+              : `${overallAvgSpeed.toFixed(0)} km/h`
+          }
+          subtitle={selectedStats ? `${cityLabel} — current` : 'Across all cities'}
           icon={Radio}
           color="green"
         />
         <KpiCard
-          title="Avg Congestion"
-          value={isLoading ? '…' : congestionLabel}
-          subtitle="Across all cities"
+          title="Congestion Level"
+          value={
+            isLoading ? '…' :
+            selectedStats ? (selectedStats.hasData ? selectedStats.congestion : '—')
+                          : congestionLabel
+          }
+          subtitle={selectedStats ? `${cityLabel} — current` : 'Across all cities'}
           icon={TrendingUp}
-          color={avgScore >= 2.5 ? 'red' : avgScore >= 1.5 ? 'amber' : 'green'}
+          color={
+            (selectedStats?.congestion ?? congestionLabel) === 'High' ? 'red' :
+            (selectedStats?.congestion ?? congestionLabel) === 'Medium' ? 'amber' : 'green'
+          }
         />
         <KpiCard
           title="Predictions Today"
@@ -239,7 +279,7 @@ export default function Dashboard() {
           </div>
         </CardHeader>
         <CardContent className="p-3">
-          <TrafficMap junctions={mapJunctions} />
+          <TrafficMap junctions={mapJunctions} focusJunctionId={selectedJunction} />
         </CardContent>
       </Card>
 

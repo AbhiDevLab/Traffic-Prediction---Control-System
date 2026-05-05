@@ -15,6 +15,7 @@ export interface JunctionMapData {
 
 interface Props {
   junctions: JunctionMapData[];
+  focusJunctionId?: string; // when set (and not 'all'), map zooms to this junction
 }
 
 function congestionColor(level?: string) {
@@ -23,7 +24,7 @@ function congestionColor(level?: string) {
   return "#22c55e";
 }
 
-export function TrafficMap({ junctions }: Props) {
+export function TrafficMap({ junctions, focusJunctionId }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef      = useRef<LeafletMap | null>(null);
   const markersRef  = useRef<CircleMarker[]>([]);
@@ -101,6 +102,22 @@ export function TrafficMap({ junctions }: Props) {
       });
     });
   }, [junctions]);
+
+  // Focus map on a specific junction when selected
+  useEffect(() => {
+    if (!mapRef.current) return;
+    if (!focusJunctionId || focusJunctionId === 'all') {
+      mapRef.current.flyTo([22, 79], 5, { duration: 0.8 });
+      return;
+    }
+    const j = junctions.find(x => x.id === focusJunctionId);
+    if (!j) return;
+    mapRef.current.flyTo([j.lat, j.lon], 13, { duration: 0.9 });
+    // open popup for the matching marker
+    const idx = junctions.findIndex(x => x.id === focusJunctionId);
+    const marker = markersRef.current[idx];
+    if (marker) setTimeout(() => marker.openPopup(), 600);
+  }, [focusJunctionId, junctions]);
 
   return (
     <div
